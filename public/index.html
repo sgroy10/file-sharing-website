@@ -30,9 +30,9 @@
   <form id="upload-form" enctype="multipart/form-data">
     <input type="file" id="file-input" multiple />
     <input type="submit" value="Upload" />
-    <progress id="progress-bar" value="0" max="100"></progress>
+    <progress id="upload-progress-bar" value="0" max="100"></progress>
   </form>
-  <div id="status"></div>
+  <div id="upload-status"></div>
 
   <h2>Download Files</h2>
   <form id="download-form">
@@ -62,16 +62,16 @@
       xhr.upload.onprogress = function(event) {
         if (event.lengthComputable) {
           var percentComplete = (event.loaded / event.total) * 100;
-          document.getElementById('progress-bar').value = percentComplete;
+          document.getElementById('upload-progress-bar').value = percentComplete;
         }
       };
 
       xhr.onload = function() {
         if (xhr.status == 200) {
           var response = JSON.parse(xhr.responseText);
-          document.getElementById('status').textContent = 'Upload complete! Access code: ' + response.accessCode;
+          document.getElementById('upload-status').textContent = 'Upload complete! Access code: ' + response.accessCode;
         } else {
-          document.getElementById('status').textContent = 'Upload failed.';
+          document.getElementById('upload-status').textContent = 'Upload failed.';
         }
       };
 
