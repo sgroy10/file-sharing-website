@@ -1,184 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Sharing Website</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 1em;
-            text-align: center;
-        }
-        h1 {
-            margin-top: 0;
-        }
-        .container {
-            padding: 2em;
-        }
-        form {
-            margin-bottom: 2em;
-            background: white;
-            padding: 2em;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5em;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 0.5em;
-            margin-bottom: 1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 1em;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #accessCodeDisplay {
-            background: white;
-            padding: 1em;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 1em;
-            display: none;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 1em;
-            background-color: #f1f1f1;
-        }
-        #loading {
-            display: none;
-            position: fixed;
-            z-index: 999;
-            height: 100%;
-            width: 100%;
-            overflow: show;
-            margin: auto;
-            top: 0;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            text-align: center;
-            color: white;
-        }
-        .spinner {
-            margin-top: 20%;
-            border: 16px solid #f3f3f3;
-            border-top: 16px solid #3498db;
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Sharing Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    progress {
+      width: 100%;
+      display: block;
+      margin-top: 10px;
+    }
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.8em;
+      color: #888;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>File Sharing Website</h1>
-    </header>
-    <div class="container">
-        <div id="loading">
-            <div class="spinner"></div>
-            <p>Uploading/Downloading...</p>
-        </div>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <label for="folderName">Folder Name:</label>
-            <input type="text" id="folderName" name="folderName" required><br><br>
-            <label for="fileInput">Select Files:</label>
-            <input type="file" id="fileInput" name="files" multiple required><br><br>
-            <button type="submit">Upload</button>
-        </form>
-        <div id="accessCodeDisplay"></div>
-        <form id="downloadForm">
-            <label for="accessCode">Access Code:</label>
-            <input type="text" id="accessCode" name="accessCode" required><br><br>
-            <button type="submit">Download</button>
-        </form>
-    </div>
-    <footer>
-        Developed by Sandeep Roy, &copy; 2024
-    </footer>
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            showLoading();
-            const formData = new FormData(this);
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.json())
-            .then(data => {
-                hideLoading();
-                document.getElementById('accessCodeDisplay').innerHTML = `<p>Upload successful! Your access code is: <strong>${data.code}</strong></p>`;
-                document.getElementById('accessCodeDisplay').style.display = 'block';
-            }).catch(error => {
-                hideLoading();
-                alert('Upload failed!');
-                console.error('Error:', error);
-            });
-        });
+  <h1>Upload Files</h1>
+  <form id="upload-form" enctype="multipart/form-data">
+    <input type="file" id="file-input" multiple />
+    <input type="submit" value="Upload" />
+    <progress id="progress-bar" value="0" max="100"></progress>
+  </form>
+  <div id="status"></div>
 
-        document.getElementById('downloadForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            showLoading();
-            const accessCode = document.getElementById('accessCode').value;
-            fetch('/download', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ code: accessCode })
-            }).then(response => response.blob())
-            .then(blob => {
-                hideLoading();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'files.zip';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            }).catch(error => {
-                hideLoading();
-                alert('Download failed!');
-                console.error('Error:', error);
-            });
-        });
+  <h2>Download Files</h2>
+  <form id="download-form">
+    <input type="text" id="access-code" placeholder="Enter access code" required />
+    <input type="submit" value="Download" />
+    <progress id="download-progress-bar" value="0" max="100"></progress>
+  </form>
+  <div id="download-status"></div>
 
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
+  <footer>
+    <p>Developed by Sandeep Roy, copyright &copy; 2024</p>
+  </footer>
+  <script>
+    document.getElementById('upload-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var files = document.getElementById('file-input').files;
+      var formData = new FormData();
+
+      for (var i = 0; i < files.length; i++) {
+        formData.append('files[]', files[i]);
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload', true);
+
+      xhr.upload.onprogress = function(event) {
+        if (event.lengthComputable) {
+          var percentComplete = (event.loaded / event.total) * 100;
+          document.getElementById('progress-bar').value = percentComplete;
         }
+      };
 
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
+      xhr.onload = function() {
+        if (xhr.status == 200) {
+          document.getElementById('status').textContent = 'Upload complete!';
+        } else {
+          document.getElementById('status').textContent = 'Upload failed.';
         }
-    </script>
+      };
+
+      xhr.send(formData);
+    });
+
+    document.getElementById('download-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var accessCode = document.getElementById('access-code').value;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', `/download?code=${accessCode}`, true);
+      xhr.responseType = 'blob';
+
+      xhr.onprogress = function(event) {
+        if (event.lengthComputable) {
+          var percentComplete = (event.loaded / event.total) * 100;
+          document.getElementById('download-progress-bar').value = percentComplete;
+        }
+      };
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          var blob = new Blob([xhr.response], { type: 'application/zip' });
+          var url = window.URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = 'files.zip';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.getElementById('download-status').textContent = 'Download complete!';
+        } else {
+          document.getElementById('download-status').textContent = 'Download failed.';
+        }
+      };
+
+      xhr.send();
+    });
+  </script>
 </body>
 </html>

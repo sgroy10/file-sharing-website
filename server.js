@@ -1,91 +1,48 @@
 const express = require('express');
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 const archiver = require('archiver');
-const cors = require('cors');
-const sequelize = require('./config');
-const File = require('./models');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// Use CORS
-app.use(cors());
-
-// Sync the database
-sequelize.sync().then(() => {
-  console.log('Database & tables created!');
-});
-
-// Configure Multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = `uploads/${req.body.folderName}`;
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  }
-});
-const upload = multer({ storage }).array('files', 50);
-
-// Routes
-app.post('/upload', upload, async (req, res) => {
-  const code = uuidv4();
-  const folderPath = `uploads/${req.body.folderName}`;
-  const files = req.files.map(file => ({
-    filename: file.originalname,
-    path: file.path,
-    code: code
-  }));
-
-  console.log(`Uploading folder: ${folderPath} with code: ${code}`);
-  console.log('Received files:', files);
-  console.log('Received folderName:', req.body.folderName);
-
-  try {
-    await File.bulkCreate(files);
-    console.log(`Files successfully saved with code: ${code}`);
-    res.send({ code: code });
-  } catch (error) {
-    console.error('Error saving files to database:', error);
-    res.status(500).send('Internal Server Error');
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
   }
 });
 
-app.get('/download/:code', async (req, res) => {
-  const files = await File.findAll({ where: { code: req.params.code } });
-  if (files.length) {
-    const archiveName = `archive-${req.params.code}.zip`;
-    const archivePath = path.join(__dirname, archiveName);
+const upload = multer({ storage: storage });
 
-    const output = fs.createWriteStream(archivePath);
-    const archive = archiver('zip');
+app.use(express.static('public'));
 
-    output.on('close', () => {
-      res.download(archivePath, archiveName, err => {
-        if (err) throw err;
-        fs.unlinkSync(archivePath); // delete the archive after download
-      });
-    });
-
-    archive.on('error', err => { throw err; });
-
-    archive.pipe(output);
-    files.forEach(file => {
-      archive.file(file.path, { name: file.filename });
-    });
-    archive.finalize();
-  } else {
-    res.status(404).send('Files not found');
-  }
+app.post('/upload', upload.array('files[]', 100), (req, res) => {
+  const accessCode = Date.now().toString();
+  // Save the access code and file paths in a simple JSON file or a database
+  fs.writeFileSync(`./uploads/${accessCode}.json`, JSON.stringify(req.files.map(file => file.path)));
+  res.status(200).send(accessCode);
 });
 
-// Serve Static Files (Frontend)
-app.use(express.static(path.join(__dirname, 'public')));
+app.get('/download', (req, res) => {
+  const accessCode = req.query.code;
+  const filePaths = JSON.parse(fs.readFileSync(`./uploads/${accessCode}.json`));
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  res.setHeader('Content-Disposition', 'attachment; filename=files.zip');
+  res.setHeader('Content-Type', 'application/zip');
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.pipe(res);
+
+  filePaths.forEach(filePath => {
+    archive.file(filePath, { name: path.basename(filePath) });
+  });
+
+  archive.finalize();
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
