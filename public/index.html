@@ -116,9 +116,14 @@
           a.click();
           window.URL.revokeObjectURL(url);
           document.getElementById('download-status').textContent = 'Download complete!';
+          document.getElementById('download-progress-bar').style.width = '0%'; // Reset progress bar
         } else {
           document.getElementById('download-status').textContent = 'Download failed.';
         }
+      };
+
+      xhr.onerror = function() {
+        document.getElementById('download-status').textContent = 'Download failed.';
       };
 
       xhr.send();
