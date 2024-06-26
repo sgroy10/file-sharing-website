@@ -5,6 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Sharing Website</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        .container {
+            padding: 2em;
+        }
+        form {
+            margin-bottom: 2em;
+            background: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #accessCodeDisplay {
+            background: white;
+            padding: 1em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 1em;
+            display: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 1em;
+            background-color: #f1f1f1;
+        }
         #loading {
             display: none;
             position: fixed;
@@ -19,7 +83,6 @@
             text-align: center;
             color: white;
         }
-
         .spinner {
             margin-top: 20%;
             border: 16px solid #f3f3f3;
@@ -29,7 +92,6 @@
             height: 120px;
             animation: spin 2s linear infinite;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -37,24 +99,29 @@
     </style>
 </head>
 <body>
-    <div id="loading">
-        <div class="spinner"></div>
-        <p>Uploading/Downloading...</p>
+    <header>
+        <h1>File Sharing Website</h1>
+    </header>
+    <div class="container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Uploading/Downloading...</p>
+        </div>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="folderName">Folder Name:</label>
+            <input type="text" id="folderName" name="folderName" required><br><br>
+            <label for="fileInput">Select Files:</label>
+            <input type="file" id="fileInput" name="files" multiple required><br><br>
+            <button type="submit">Upload</button>
+        </form>
+        <div id="accessCodeDisplay"></div>
+        <form id="downloadForm">
+            <label for="accessCode">Access Code:</label>
+            <input type="text" id="accessCode" name="accessCode" required><br><br>
+            <button type="submit">Download</button>
+        </form>
     </div>
-    <h1>File Sharing Website</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <label for="folderName">Folder Name:</label>
-        <input type="text" id="folderName" name="folderName" required><br><br>
-        <label for="fileInput">Select Files:</label>
-        <input type="file" id="fileInput" name="files" multiple required><br><br>
-        <button type="submit">Upload</button>
-    </form>
-    <form id="downloadForm">
-        <label for="accessCode">Access Code:</label>
-        <input type="text" id="accessCode" name="accessCode" required><br><br>
-        <button type="submit">Download</button>
-    </form>
-    <footer style="text-align:center; margin-top: 20px;">
+    <footer>
         Developed by Sandeep Roy, &copy; 2024
     </footer>
     <script>
@@ -68,7 +135,8 @@
             }).then(response => response.json())
             .then(data => {
                 hideLoading();
-                alert('Upload successful! Your access code is: ' + data.code);
+                document.getElementById('accessCodeDisplay').innerHTML = `<p>Upload successful! Your access code is: <strong>${data.code}</strong></p>`;
+                document.getElementById('accessCodeDisplay').style.display = 'block';
             }).catch(error => {
                 hideLoading();
                 alert('Upload failed!');
