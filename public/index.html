@@ -17,6 +17,24 @@
       display: block;
       margin-top: 10px;
     }
+    .progress-bar {
+      width: 100%;
+      background-color: #f3f3f3;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background-color: #4caf50;
+      animation: progress-animation 1s ease-out forwards;
+    }
+    @keyframes progress-animation {
+      from { width: 0; }
+      to { width: 100%; }
+    }
     footer {
       margin-top: 20px;
       text-align: center;
@@ -30,7 +48,7 @@
   <form id="upload-form" enctype="multipart/form-data">
     <input type="file" id="file-input" multiple />
     <input type="submit" value="Upload" />
-    <progress id="upload-progress-bar" value="0" max="100"></progress>
+    <div class="progress-bar"><span id="upload-progress-bar"></span></div>
   </form>
   <div id="upload-status"></div>
 
@@ -38,7 +56,7 @@
   <form id="download-form">
     <input type="text" id="access-code" placeholder="Enter access code" required />
     <input type="submit" value="Download" />
-    <progress id="download-progress-bar" value="0" max="100"></progress>
+    <div class="progress-bar"><span id="download-progress-bar"></span></div>
   </form>
   <div id="download-status"></div>
 
@@ -62,7 +80,7 @@
       xhr.upload.onprogress = function(event) {
         if (event.lengthComputable) {
           var percentComplete = (event.loaded / event.total) * 100;
-          document.getElementById('upload-progress-bar').value = percentComplete;
+          document.getElementById('upload-progress-bar').style.width = percentComplete + '%';
         }
       };
 
@@ -90,7 +108,7 @@
       xhr.onprogress = function(event) {
         if (event.lengthComputable) {
           var percentComplete = (event.loaded / event.total) * 100;
-          document.getElementById('download-progress-bar').value = percentComplete;
+          document.getElementById('download-progress-bar').style.width = percentComplete + '%';
         }
       };
 
