@@ -71,6 +71,7 @@
   <form id="download-form">
     <input type="text" id="access-code" placeholder="Enter access code" required />
     <input type="submit" value="Download" />
+    <div class="progress-bar"><span id="download-progress-bar"></span></div>
     <div class="circular-progress" id="download-progress">
       <svg>
         <circle cx="25" cy="25" r="25"></circle>
@@ -127,6 +128,7 @@
       xhr.onprogress = function(event) {
         if (event.lengthComputable) {
           var percentComplete = (event.loaded / event.total) * 100;
+          document.getElementById('download-progress-bar').style.width = percentComplete + '%';
           var offset = 157 - (157 * percentComplete / 100);
           document.querySelector('#download-progress circle').style.strokeDashoffset = offset;
         }
@@ -144,6 +146,7 @@
           a.click();
           window.URL.revokeObjectURL(url);
           document.getElementById('download-status').textContent = 'Download complete!';
+          document.getElementById('download-progress-bar').style.width = '0%'; // Reset progress bar
           document.querySelector('#download-progress circle').style.strokeDashoffset = '157'; // Reset progress circle
         } else {
           document.getElementById('download-status').textContent = 'Download failed.';
