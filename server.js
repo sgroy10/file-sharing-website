@@ -21,9 +21,11 @@ app.use(express.static('public'));
 
 app.post('/upload', upload.array('files[]', 100), (req, res) => {
   const accessCode = Date.now().toString();
-  // Save the access code and file paths in a simple JSON file or a database
-  fs.writeFileSync(`./uploads/${accessCode}.json`, JSON.stringify(req.files.map(file => file.path)));
-  res.status(200).send(accessCode);
+  const filePaths = req.files.map(file => file.path);
+
+  fs.writeFileSync(`./uploads/${accessCode}.json`, JSON.stringify(filePaths));
+
+  res.status(200).send({ accessCode });
 });
 
 app.get('/download', (req, res) => {

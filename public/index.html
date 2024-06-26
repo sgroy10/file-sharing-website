@@ -68,7 +68,8 @@
 
       xhr.onload = function() {
         if (xhr.status == 200) {
-          document.getElementById('status').textContent = 'Upload complete!';
+          var response = JSON.parse(xhr.responseText);
+          document.getElementById('status').textContent = 'Upload complete! Access code: ' + response.accessCode;
         } else {
           document.getElementById('status').textContent = 'Upload failed.';
         }
