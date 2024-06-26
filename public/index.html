@@ -28,28 +28,6 @@
       background-color: #4caf50;
       transition: width 0.4s ease;
     }
-    .circular-progress {
-      position: relative;
-      width: 50px;
-      height: 50px;
-      margin: 20px auto;
-    }
-    .circular-progress svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-    }
-    .circular-progress circle {
-      stroke-dasharray: 157;
-      stroke-dashoffset: 157;
-      stroke-width: 10;
-      stroke: #4caf50;
-      fill: none;
-      transition: stroke-dashoffset 0.4s ease;
-    }
     footer {
       margin-top: 20px;
       text-align: center;
@@ -71,14 +49,9 @@
   <form id="download-form">
     <input type="text" id="access-code" placeholder="Enter access code" required />
     <input type="submit" value="Download" />
-    <div class="progress-bar"><span id="download-progress-bar"></span></div>
-    <div class="circular-progress" id="download-progress">
-      <svg>
-        <circle cx="25" cy="25" r="25"></circle>
-      </svg>
-    </div>
+    <div id="download-status">Downloading...</div>
   </form>
-  <div id="download-status"></div>
+  <div id="download-progress-bar"></div>
 
   <footer>
     <p>Developed by Sandeep Roy, copyright &copy; 2024</p>
@@ -121,18 +94,11 @@
 
       var accessCode = document.getElementById('access-code').value;
 
+      document.getElementById('download-status').textContent = 'Downloading...';
+
       var xhr = new XMLHttpRequest();
       xhr.open('GET', `/download?code=${accessCode}`, true);
       xhr.responseType = 'blob';
-
-      xhr.onprogress = function(event) {
-        if (event.lengthComputable) {
-          var percentComplete = (event.loaded / event.total) * 100;
-          document.getElementById('download-progress-bar').style.width = percentComplete + '%';
-          var offset = 157 - (157 * percentComplete / 100);
-          document.querySelector('#download-progress circle').style.strokeDashoffset = offset;
-        }
-      };
 
       xhr.onload = function() {
         if (xhr.status === 200) {
@@ -146,8 +112,6 @@
           a.click();
           window.URL.revokeObjectURL(url);
           document.getElementById('download-status').textContent = 'Download complete!';
-          document.getElementById('download-progress-bar').style.width = '0%'; // Reset progress bar
-          document.querySelector('#download-progress circle').style.strokeDashoffset = '157'; // Reset progress circle
         } else {
           document.getElementById('download-status').textContent = 'Download failed.';
         }
