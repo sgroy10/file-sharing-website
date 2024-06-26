@@ -1,51 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Sharing</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Sharing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="file"] {
+      display: block;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h1>Upload a Folder</h1>
-    <form id="uploadForm">
-        <input type="text" id="folderName" placeholder="Enter folder name" required>
-        <input type="file" id="fileInput" webkitdirectory multiple required>
-        <button type="submit">Upload</button>
-    </form>
-    <p id="uploadResult"></p>
-
-    <h1>Download a Folder</h1>
-    <form id="downloadForm">
-        <input type="text" id="accessCode" placeholder="Enter access code" required>
-        <button type="submit">Download</button>
-    </form>
-
-    <script>
-        const uploadForm = document.getElementById('uploadForm');
-        uploadForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const folderName = document.getElementById('folderName').value;
-            const files = document.getElementById('fileInput').files;
-            const formData = new FormData();
-            formData.append('folderName', folderName);
-            for (let i = 0; i < files.length; i++) {
-                formData.append('files', files[i]);
-            }
-
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            document.getElementById('uploadResult').innerText = `Folder uploaded! Access code: ${result.code}`;
+  <h1>Upload Files</h1>
+  <form id="uploadForm" enctype="multipart/form-data" method="post">
+    <input type="text" name="folderName" placeholder="Folder Name" required>
+    <input type="file" name="files" multiple required>
+    <button type="submit">Upload</button>
+  </form>
+  <p id="result"></p>
+  <h1>Retrieve Files</h1>
+  <form id="retrieveForm" method="get">
+    <input type="text" id="retrieveCode" placeholder="Enter Code" required>
+    <button type="submit">Retrieve</button>
+  </form>
+  <script>
+    document.getElementById('uploadForm').onsubmit = async function (event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
         });
 
-        const downloadForm = document.getElementById('downloadForm');
-        downloadForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const accessCode = document.getElementById('accessCode').value;
-            window.location.href = `/download/${accessCode}`;
-        });
-    </script>
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+        const result = await response.json();
+        console.log('Success:', result);
+        document.getElementById('result').textContent = `Upload successful! Code: ${result.code}`;
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('result').textContent = 'Upload failed!';
+      }
+    };
+
+    document.getElementById('retrieveForm').onsubmit = function (event) {
+      event.preventDefault();
+      const code = document.getElementById('retrieveCode').value;
+      window.location.href = `/download/${code}`;
+    };
+  </script>
 </body>
 </html>
