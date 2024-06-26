@@ -1,88 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Sharing</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-    }
-    h1 {
-      color: #333;
-    }
-    form {
-      margin-bottom: 20px;
-    }
-    input[type="text"], input[type="file"] {
-      display: block;
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 16px;
-      width: 100%;
-      max-width: 400px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <h1>Upload Files</h1>
-  <form id="uploadForm" enctype="multipart/form-data" method="post">
-    <input type="text" name="folderName" placeholder="Folder Name" required>
-    <input type="file" name="files" multiple required>
-    <button type="submit">Upload</button>
-  </form>
-  <p id="result"></p>
-  <h1>Retrieve Files</h1>
-  <form id="retrieveForm" method="get">
-    <input type="text" id="retrieveCode" placeholder="Enter Code" required>
-    <button type="submit">Retrieve</button>
-  </form>
-  <script>
-    document.getElementById('uploadForm').onsubmit = async function (event) {
-      event.preventDefault();
-      const formData = new FormData(event.target);
-      try {
-        const response = await fetch('/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok ' + response.statusText);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing Website</title>
+    <style>
+        #loading {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            height: 100%;
+            width: 100%;
+            overflow: show;
+            margin: auto;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: white;
         }
 
-        const result = await response.json();
-        console.log('Success:', result);
-        document.getElementById('result').textContent = `Upload successful! Code: ${result.code}`;
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('result').textContent = 'Upload failed!';
-      }
-    };
+        .spinner {
+            margin-top: 20%;
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
 
-    document.getElementById('retrieveForm').onsubmit = function (event) {
-      event.preventDefault();
-      const code = document.getElementById('retrieveCode').value;
-      window.location.href = `/download/${code}`;
-    };
-  </script>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Uploading/Downloading...</p>
+    </div>
+    <h1>File Sharing Website</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="folderName">Folder Name:</label>
+        <input type="text" id="folderName" name="folderName" required><br><br>
+        <label for="fileInput">Select Files:</label>
+        <input type="file" id="fileInput" name="files" multiple required><br><br>
+        <button type="submit">Upload</button>
+    </form>
+    <form id="downloadForm">
+        <label for="accessCode">Access Code:</label>
+        <input type="text" id="accessCode" name="accessCode" required><br><br>
+        <button type="submit">Download</button>
+    </form>
+    <footer style="text-align:center; margin-top: 20px;">
+        Developed by Sandeep Roy, &copy; 2024
+    </footer>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            showLoading();
+            const formData = new FormData(this);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+            .then(data => {
+                hideLoading();
+                alert('Upload successful! Your access code is: ' + data.code);
+            }).catch(error => {
+                hideLoading();
+                alert('Upload failed!');
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('downloadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            showLoading();
+            const accessCode = document.getElementById('accessCode').value;
+            fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: accessCode })
+            }).then(response => response.blob())
+            .then(blob => {
+                hideLoading();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'files.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }).catch(error => {
+                hideLoading();
+                alert('Download failed!');
+                console.error('Error:', error);
+            });
+        });
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
